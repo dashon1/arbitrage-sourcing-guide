@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Arbitrage Sourcing Guide</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @page { size: A4 portrait; margin: 14mm 12mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  :root {
+    --ink: #1F2A25;
+    --ink-2: #2C3E35;
+    --ink-3: #5A6B62;
+    --ink-4: #868F88;
+    --hairline: #D8DCD7;
+    --rule: #C8D0C8;
+    --surface: #FFFFFF;
+    --mute: #F4F6F4;
+    --accent: #0c8a5d;
+    --cover-1: #1C2B2A;
+    --cover-2: #2A4A3E;
+    --cover-3: #0c8a5d;
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); background: var(--surface);
+    font-size: 10.5pt; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .content { padding: 14mm 12mm; }
+  .page-break  { page-break-after: always; }
+  .avoid-break { page-break-inside: avoid; }
+
+  /* === Cover (full-bleed gradient hero) */
+  .cover {
+    height: 268mm;
+    background: linear-gradient(135deg, var(--cover-1) 0%, var(--cover-2) 50%, var(--cover-3) 100%);
+    color: #fff; padding: 30mm 18mm; position: relative; overflow: hidden;
+    page-break-after: always;
+  }
+  .cover::before {
+    content: ""; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(12,138,93,0.35), transparent 70%);
+  }
+  .cover::after {
+    content: ""; position: absolute; bottom: -150px; left: -150px;
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(12,138,93,0.25), transparent 70%);
+  }
+  .cover-tag {
+    display: inline-block; padding: 6px 14px; border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px; font-size: 10pt; letter-spacing: 2px; opacity: 0.85;
+  }
+  .cover h1 {
+    font-size: 38pt; font-weight: 700; margin: 28px 0 18px; line-height: 1.15;
+    letter-spacing: -1px; position: relative; z-index: 2;
+  }
+  .cover .subtitle {
+    font-size: 13pt; opacity: 0.85; max-width: 520px;
+    line-height: 1.7; position: relative; z-index: 2;
+  }
+  .cover-meta {
+    position: absolute; bottom: 30mm; left: 18mm; right: 18mm;
+    display: flex; justify-content: space-between; align-items: flex-end; z-index: 2;
+  }
+  .meta-stats { display: flex; gap: 32px; }
+  .meta-stat .num { font-size: 28pt; font-weight: 700; line-height: 1; }
+  .meta-stat .lbl { font-size: 9pt; opacity: 0.7; margin-top: 4px; letter-spacing: 1px; }
+  .cover-info { text-align: right; opacity: 0.7; font-size: 9pt; line-height: 1.8; }
+
+  /* === Section header */
+  h2.section {
+    font-size: 20pt; font-weight: 700; margin: 0 0 4px;
+    color: var(--ink); letter-spacing: -0.5px;
+  }
+  .section-num {
+    display: inline-block; font-size: 10pt; font-weight: 600;
+    color: var(--accent); letter-spacing: 3px; margin-bottom: 8px;
+  }
+  .section-line {
+    width: 50px; height: 3px; background: var(--accent);
+    border-radius: 2px; margin: 12px 0 24px;
+  }
+  h3 { font-size: 13pt; font-weight: 600; margin: 22px 0 10px; color: var(--ink); letter-spacing: -0.3px; }
+  h3 .num { color: var(--ink-4); font-weight: 500; margin-right: 8px; }
+  p { margin: 8px 0; }
+  .lead {
+    font-size: 11pt; color: var(--ink-2); line-height: 1.75;
+    border-left: 3px solid var(--accent);
+    background: linear-gradient(90deg, rgba(12,138,93,0.06), transparent);
+    padding: 14px 16px; border-radius: 4px; margin: 16px 0 22px;
+  }
+  ul { margin: 8px 0; padding-left: 18px; }
+  li { margin: 4px 0; line-height: 1.6; }
+
+  /* === KPI grid */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+  .kpi {
+    padding: 14px; border-radius: 12px;
+    background: linear-gradient(135deg, #f5f5f7, #ebebef);
+    border: 1px solid var(--rule);
+  }
+  .kpi.blue   { background: linear-gradient(135deg, #e3f0ff, #d4e6ff); border-color: #b8d4ff; }
+  .kpi.green  { background: linear-gradient(135deg, #e8f7ee, #d4f0e0); border-color: #b3e0c2; }
+  .kpi.orange { background: linear-gradient(135deg, #fff0e0, #ffe0c4); border-color: #ffc89b; }
+  .kpi.purple { background: linear-gradient(135deg, #f0e8ff, #e2d4ff); border-color: #c9b3ff; }
+  .kpi .label { font-size: 8.5pt; color: var(--ink-3); letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500; }
+  .kpi .value { font-size: 22pt; font-weight: 700; color: var(--ink); line-height: 1.1; margin-top: 4px; }
+  .kpi .unit  { font-size: 11pt; color: var(--ink-3); margin-left: 2px; font-weight: 500; }
+  .kpi .desc  { font-size: 8.5pt; color: var(--ink-3); margin-top: 4px; }
+
+  /* === Chart card */
+  .chart-card {
+    background: #fff; border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 16px; margin: 18px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .chart-title {
+    font-size: 11pt; font-weight: 600; color: var(--ink);
+    margin: 0 0 4px; display: flex; align-items: center; gap: 8px;
+  }
+  .chart-title::before {
+    content: ""; width: 4px; height: 14px; background: var(--accent); border-radius: 2px;
+  }
+  .chart-sub  { font-size: 9pt; color: var(--ink-4); margin: 0 0 12px; padding-left: 12px; }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall  { height: 380px; }
+  .chart-wrap.short { height: 200px; }
+
+  /* === Data table */
+  table.data {
+    width: 100%; border-collapse: collapse; font-size: 9pt;
+    margin: 12px 0; background: #fff;
+    border-radius: 8px; overflow: hidden; border: 1px solid var(--hairline);
+  }
+  table.data thead th {
+    background: linear-gradient(180deg, #f5f5f7, #ebebef);
+    padding: 9px 10px; text-align: left;
+    font-weight: 600; color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    font-size: 8.5pt; letter-spacing: 0.3px;
+  }
+  table.data tbody td { padding: 7px 10px; border-bottom: 1px solid var(--mute); color: var(--ink-2); }
+  table.data tbody tr:last-child td { border-bottom: 0; }
+  table.data tbody tr:nth-child(even) { background: #fbfbfd; }
+  table.data tbody td.bold { font-weight: 600; color: var(--ink); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 8pt; font-weight: 500; }
+  .pill-bad  { background: #ffebee; color: #c62828; }
+  .pill-warn { background: #fff3e0; color: #e65100; }
+  .pill-ok   { background: #e8f5e9; color: #2e7d32; }
+  .pill-good { background: #e3f2fd; color: #1565c0; }
+  .pill-best { background: #f3e5f5; color: #6a1b9a; }
+
+  /* === Insight callout */
+  .insight {
+    background: linear-gradient(135deg, #fff8e1, #fff3c4);
+    border: 1px solid #ffe082;
+    border-radius: 10px; padding: 12px 16px; margin: 16px 0; font-size: 10pt;
+  }
+  .insight .label {
+    display: inline-block; font-weight: 700; color: #b8860b;
+    font-size: 9pt; letter-spacing: 1px; margin-right: 8px;
+  }
+
+  /* === Dark conclusion blocks */
+  .conclusion {
+    background: linear-gradient(135deg, #1C2B2A, #2A4A3E);
+    color: #fff; padding: 24px; border-radius: 14px; margin: 20px 0;
+  }
+  .conclusion h3 { color: #fff; margin-top: 0; }
+  .conclusion h3 .num { color: #4DBB8F; }
+  .takeaway {
+    display: flex; gap: 8px; margin: 8px 0;
+    padding: 10px 12px; border-radius: 8px; background: var(--mute); font-size: 9.5pt;
+  }
+  .takeaway .icon { font-weight: 700; color: var(--accent); min-width: 18px; }
+
+  /* === Footer-meta */
+  .footer-meta {
+    border-top: 1px solid var(--hairline); margin-top: 30px; padding-top: 16px;
+    font-size: 8.5pt; color: var(--ink-4);
+  }
+  .footer-meta h4 { color: var(--ink-2); font-size: 10pt; margin: 0 0 8px; }
+  .footer-meta ul { margin: 6px 0; padding-left: 18px; line-height: 1.7; }
+
+  /* === Workflow step cards */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    border-left: 4px solid var(--accent);
+  }
+  .step-card .step-num {
+    font-size: 10pt;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .step-card .step-title {
+    font-size: 13pt;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  /* === Platform grid */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .platform-card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .platform-card .name {
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .platform-card .score {
+    font-size: 18pt;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .platform-card .desc {
+    font-size: 8pt;
+    color: var(--ink-4);
+    margin-top: 4px;
+  }
+
+  /* === Screen-emulation */
+  @media screen {
+    html { background: #d0d0d0; }
+    body { margin: 0; padding: 20px 0; }
+    body > section {
+      width: 210mm; min-height: 297mm; margin: 0 auto 20px;
+      background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      box-sizing: border-box; overflow: hidden;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<section class="cover">
+  <span class="cover-tag">BUSINESS GUIDE · 2026</span>
+  <h1>The Arbitrage Sourcing Guide</h1>
+  <p class="subtitle">A complete workflow for finding underpriced products on local platforms and flipping them for profit online.</p>
+
+  <div class="cover-meta">
+    <div class="meta-stats">
+      <div class="meta-stat"><div class="num">5</div><div class="lbl">STEP METHOD</div></div>
+      <div class="meta-stat"><div class="num">7</div><div class="lbl">PLATFORMS</div></div>
+      <div class="meta-stat"><div class="num">50+</div><div class="lbl">CATEGORIES</div></div>
+    </div>
+    <div class="cover-info">
+      <div>BUSINESS GUIDE</div>
+      <div>Version 1.0 · May 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROLOGUE -->
+<section class="content page-break">
+  <span class="section-num">PROLOGUE · INTRODUCTION</span>
+  <h2 class="section">What is Retail Arbitrage?</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Retail arbitrage is the practice of purchasing products at a lower price from one source and selling them at a higher price on another platform. It's one of the oldest business models in commerce—and with the internet, it's more accessible than ever.</p>
+
+  <div class="kpis">
+    <div class="kpi blue">
+      <div class="label">Startup Cost</div>
+      <div class="value">$100</div>
+      <div class="desc">Start with as little as $100</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Time to First Sale</div>
+      <div class="value">48 hrs</div>
+      <div class="desc">List and sell within 48 hours</div>
+    </div>
+    <div class="kpi purple">
+      <div class="label">Avg. Profit Margin</div>
+      <div class="value">35%</div>
+      <div class="desc">After all fees and costs</div>
+    </div>
+    <div class="kpi orange">
+      <div class="label">ROI Potential</div>
+      <div class="value">100%+</div>
+      <div class="desc">Per month with scaling</div>
+    </div>
+  </div>
+
+  <h3><span class="num">1.1</span>Why Arbitrage Sourcing Works</h3>
+  <ul>
+    <li><strong>Market inefficiency:</strong> Local sellers often undervalue items due to lack of market knowledge or urgency to sell.</li>
+    <li><strong>Geographic arbitrage:</strong> Prices vary dramatically by location. Items cheap in one area command premium prices in another.</li>
+    <li><strong>Platform differences:</strong> Different marketplaces serve different buyer segments with different price tolerances.</li>
+    <li><strong>Timing opportunities:</strong> Life events (moving, divorce, death, downsizing) create urgency that discounts prices dramatically.</li>
+  </ul>
+
+  <h3><span class="num">1.2</span>Who This Guide is For</h3>
+  <ul>
+    <li><strong>Aspiring entrepreneurs</strong> looking for low-risk business entry</li>
+    <li><strong>Side-hustlers</strong> wanting flexible income from home</li>
+    <li><strong>Existing resellers</strong> seeking to improve their sourcing strategy</li>
+    <li><strong>Part-time income seekers</strong> with a few hours per week to invest</li>
+  </ul>
+
+  <div class="insight">
+    <span class="label">KEY INSIGHT</span>
+    The most successful arbitrage sellers treat it as a systematic business, not a hobby. Following a proven methodology beats random hunting every time.
+  </div>
+</section>
+
+<!-- PART 01: METHODOLOGY -->
+<section class="content page-break">
+  <span class="section-num">PART 01 · METHODOLOGY</span>
+  <h2 class="section">The 5-Step Sourcing Methodology</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Success in arbitrage sourcing isn't about luck—it's about following a systematic approach that minimizes risk and maximizes profit potential. Master these five steps and you'll never waste money on bad deals again.</p>
+
+  <div class="step-card">
+    <div class="step-num">STEP 1</div>
+    <div class="step-title">Platform Research</div>
+    <p>Identify the best local marketplaces in your area. Focus on platforms where motivated sellers list items, not professional resellers.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 2</div>
+    <div class="step-title">Product Scanning</div>
+    <p>Search systematically for potential items using proven keywords, filters, and timing strategies. Speed matters—good deals disappear fast.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 3</div>
+    <div class="step-title">Value Assessment</div>
+    <p>Determine the true resale value by checking sold prices on multiple platforms, not just current listings. This is where most beginners fail.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 4</div>
+    <div class="step-title">Margin Calculation</div>
+    <p>Calculate your actual profit after all fees, shipping, and costs. Never buy without knowing your minimum profitable price.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 5</div>
+    <div class="step-title">Negotiation & Acquisition</div>
+    <p>Close the deal at the best possible price using proven tactics. Always maintain discipline—you can always find another deal.</p>
+  </div>
+
+  <div class="insight">
+    <span class="label">RULE #1</span>
+    Never skip a step. Each step exists because skipping it has cost beginners thousands of dollars. The time invested in research prevents losses from impulse purchases.
+  </div>
+</section>
+
+<!-- PART 01 cont. -->
+<section class="content page-break">
+  <h3><span class="num">1.3</span>The Profit Equation</h3>
+
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Figure 1.1 · Profit Margin Breakdown</div>
+    <div class="chart-sub">Where your selling price goes when you sell a $50 item</div>
+    <div class="chart-wrap"><canvas id="chart_profit_breakdown"></canvas></div>
+  </div>
+
+  <h3><span class="num">1.4</span>Minimum Profit Thresholds</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Item Size</th>
+        <th>Weight Range</th>
+        <th>Minimum Profit</th>
+        <th>Target Profit</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Small</td><td>Under 1 lb</td><td>$10</td><td>$20</td><td><span class="pill pill-ok">Buy</span></td></tr>
+      <tr><td class="bold">Medium</td><td>1-5 lbs</td><td>$20</td><td>$35</td><td><span class="pill pill-good">Consider</span></td></tr>
+      <tr><td class="bold">Large</td><td>5-10 lbs</td><td>$30</td><td>$50</td><td><span class="pill pill-ok">Buy</span></td></tr>
+      <tr><td class="bold">Extra Large</td><td>Over 10 lbs</td><td>$40</td><td>$75</td><td><span class="pill pill-good">Consider</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PART 02: PLATFORMS -->
+<section class="content page-break">
+  <span class="section-num">PART 02 · PLATFORMS</span>
+  <h2 class="section">Platform Identification & Evaluation</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Not all sourcing platforms are created equal. Your success depends on focusing your time on platforms that offer the best combination of deal quality, competition level, and ease of use.</p>
+
+  <h3><span class="num">2.1</span>Top Sourcing Platforms</h3>
+
+  <div class="platform-grid">
+    <div class="platform-card">
+      <div class="name">Facebook Marketplace</div>
+      <div class="score">9.0</div>
+      <div class="desc">Best for deal quality</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Estate Sales</div>
+      <div class="score">9.0</div>
+      <div class="desc">Highest quality items</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">OfferUp</div>
+      <div class="score">8.0</div>
+      <div class="desc">Easiest interface</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Craigslist</div>
+      <div class="score">7.5</div>
+      <div class="desc">Volume of listings</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Thrift Stores</div>
+      <div class="score">7.5</div>
+      <div class="desc">Lowest risk sourcing</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Wholesale Liquidators</div>
+      <div class="score">7.5</div>
+      <div class="desc">Bulk opportunities</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Auctions</div>
+      <div class="score">7.0</div>
+      <div class="desc">Deep discounts</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Garage Sales</div>
+      <div class="score">6.5</div>
+      <div class="desc">Variable quality</div>
+    </div>
+    <div class="platform-card">
+      <div class="name">Local Pawn Shops</div>
+      <div class="score">6.0</div>
+      <div class="desc">Hit or miss</div>
+    </div>
+  </div>
+
+  <h3><span class="num">2.2</span>Platform Selection Matrix</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Deal Quality</th>
+        <th>Competition</th>
+        <th>Ease of Use</th>
+        <th>Safety</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Facebook Marketplace</td><td>High</td><td>High</td><td>Easy</td><td>Medium</td></tr>
+      <tr><td class="bold">Estate Sales</td><td>Very High</td><td>Low</td><td>Moderate</td><td>High</td></tr>
+      <tr><td class="bold">Thrift Stores</td><td>Medium</td><td>Low</td><td>Easy</td><td>Very High</td></tr>
+      <tr><td class="bold">Craigslist</td><td>High</td><td>Medium</td><td>Moderate</td><td>Medium</td></tr>
+      <tr><td class="bold">Wholesale Liquidators</td><td>High</td><td>Low</td><td>Moderate</td><td>High</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PART 02 cont. -->
+<section class="content page-break">
+  <h3><span class="num">2.3</span>Strategic Timing for Each Platform</h3>
+
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Figure 2.1 · Best Times to Source by Platform</div>
+    <div class="chart-sub">When to check each platform for fresh listings</div>
+    <div class="chart-wrap"><canvas id="chart_timing"></canvas></div>
+  </div>
+
+  <h3><span class="num">2.4</span>Platform-Specific Keywords</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>High-Value Keywords</th>
+        <th>Success Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Facebook</td><td>estate, moving, downsizing, divorce, kids outgrowing</td><td><span class="pill pill-best">85%+</span></td></tr>
+      <tr><td class="bold">Craigslist</td><td>estate sale, garage sale, multi-family, everything must go</td><td><span class="pill pill-best">80%+</span></td></tr>
+      <tr><td class="bold">OfferUp</td><td>bundle, urgent, will negotiate, need gone</td><td><span class="pill pill-good">70%+</span></td></tr>
+      <tr><td class="bold">Thrift Stores</td><td>Senior discount days, color tag sales, restock days</td><td><span class="pill pill-ok">Varies</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <span class="label">TIMING SECRET</span>
+    The best deals appear early morning (6-9 AM) on weekdays when most competitors are asleep. Set up alerts and be ready to move fast.
+  </div>
+</section>
+
+<!-- PART 03: RESEARCH -->
+<section class="content page-break">
+  <span class="section-num">PART 03 · RESEARCH</span>
+  <h2 class="section">Product Research Fundamentals</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Research is the foundation of profitable arbitrage. Before buying anything, you must verify that a market exists, understand competitive pricing, and calculate potential profit. This step is non-negotiable.</p>
+
+  <h3><span class="num">3.1</span>The Three Rules of Product Research</h3>
+
+  <div class="step-card">
+    <div class="step-num">RULE #1</div>
+    <div class="step-title">Verify with Sold Prices, Not Listings</div>
+    <p>Current listings show what sellers are <em>asking</em>. Sold prices show what buyers are actually <em>paying</em>. Always research completed sales to establish true market value.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">RULE #2</div>
+    <div class="step-title">Check 30-Day Sales Data</div>
+    <p>Markets fluctuate. A product that sold well 6 months ago may have new competition. Always check recent sales from the last 30 days for accurate pricing.</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">RULE #3</div>
+    <div class="step-title">Analyze Competition Quantity</div>
+    <p>Even profitable items can become unprofitable if 50 other sellers are competing for the same buyers. Factor competition into your pricing strategy.</p>
+  </div>
+</section>
+
+<!-- PART 03 cont. -->
+<section class="content page-break">
+  <h3><span class="num">3.2</span>Research Checklist (Complete Before Any Purchase)</h3>
+
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Research Step</th>
+        <th>Where to Check</th>
+        <th>Minimum Data Required</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Sold prices (last 30 days)</td><td>eBay, Amazon, platform-specific</td><td>3+ sold items</td><td><span class="pill pill-bad">Required</span></td></tr>
+      <tr><td class="bold">Current listings</td><td>Multiple platforms</td><td>10+ active</td><td><span class="pill pill-ok">Complete</span></td></tr>
+      <tr><td class="bold">Competition analysis</td><td>eBay Advanced Search</td><td>Seller count</td><td><span class="pill pill-good">Complete</span></td></tr>
+      <tr><td class="bold">Fee calculation</td><td>Platform calculator</td><td>All-in percentage</td><td><span class="pill pill-ok">Complete</span></td></tr>
+      <tr><td class="bold">Shipping estimate</td><td>Carrier websites</td><td>Weight-based</td><td><span class="pill pill-good">Complete</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="num">3.3</span>High-Potential Categories</h3>
+
+  <div class="chart-card avoid-break">
+    <div class="chart-title">Figure 3.1 · Top Arbitrage Categories by Profit Potential</div>
+    <div class="chart-sub">Based on market analysis of top-selling categories</div>
+    <div class="chart-wrap"><canvas id="chart_categories"></canvas></div>
+  </div>
+</section>
+
+<!-- PART 04: NEGOTIATION -->
+<section class="content page-break">
+  <span class="section-num">PART 04 · NEGOTIATION</span>
+  <h2 class="section">Negotiation Strategies</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Negotiation is where skill separates profitable resellers from hobbyists. The same product can be bought at 30% of asking price or full asking price—depending entirely on your negotiation approach.</p>
+
+  <h3><span class="num">4.1</span>The Psychology of Negotiation</h3>
+
+  <ul>
+    <li><strong>Create urgency without pressure:</strong> Sellers respond to time-sensitive opportunities, not threats.</li>
+    <li><strong>Always have an exit strategy:</strong> Walking away is your most powerful tool. Use it.</li>
+    <li><strong>Bundle for leverage:</strong> Offering to buy multiple items increases your negotiating power significantly.</li>
+    <li><strong>Show genuine interest with boundaries:</strong> "I'd love to buy this, but I can only pay $X" beats lowball offers.</li>
+    <li><strong>Be the easy buyer:</strong> Cash payment, local pickup, immediate availability—these have real value to sellers.</li>
+  </ul>
+
+  <h3><span class="num">4.2</span>Proven Opening Lines</h3>
+
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Situation</th>
+        <th>Opening Line</th>
+        <th>Expected Response</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Standard inquiry</td><td>"Is this still available? I can pick up today with cash."</td><td><span class="pill pill-ok">High</span></td></tr>
+      <tr><td class="bold">Low opening</td><td>"I've seen similar for $X. Would you consider $Y?"</td><td><span class="pill pill-good">Medium</span></td></tr>
+      <tr><td class="bold">Bundle offer</td><td>"I see you have several items. I'll take them all for $X total."</td><td><span class="pill pill-best">Excellent</span></td></tr>
+      <tr><td class="bold">Quick close</td><td>"I can be there in 30 minutes with exact cash. Can we do $X?"</td><td><span class="pill pill-best">Excellent</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PART 04 cont. -->
+<section class="content page-break">
+  <h3><span class="num">4.3</span>Counter-Offer Sequences</h3>
+
+  <div class="step-card">
+    <div class="step-num">SEQUENCE A</div>
+    <div class="step-title">Aggressive but Respectful</div>
+    <p><strong>Offer:</strong> 30% below asking | <strong>Counter:</strong> Meet at 15% below | <strong>Walk:</strong> State final limit clearly</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">SEQUENCE B</div>
+    <div class="step-title">Value-Based Negotiation</div>
+    <p><strong>Offer:</strong> "I know this is worth $X, and I'll pay $Y because I value your time and convenience."</p>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">SEQUENCE C</div>
+    <div class="step-title">Walk-Away Close</div>
+    <p><strong>Offer:</strong> 35% below | <strong>Counter accepted?</strong> Buy | <strong>Counter rejected?</strong> "What if we split the difference?"</p>
+  </div>
+
+  <h3><span class="num">4.4</span>Common Mistakes to Avoid</h3>
+
+  <ul>
+    <li><strong>Showing too much enthusiasm:</strong> Creates expectation of higher prices.</li>
+    <li><strong>No pre-set maximum:</strong> Always know your limit before negotiating.</li>
+    <li><strong>Negotiating via text:</strong> Call when possible—tone matters.</li>
+    <li><strong>Apologizing for low offers:</strong> State it confidently: "That's my budget for this item."</li>
+    <li><strong>Forgetting to walk away:</strong> The best deals come back or better ones appear.</li>
+  </ul>
+
+  <div class="insight">
+    <span class="label">GOLDEN RULE</span>
+    The seller needs to sell more than you need to buy. Remember this, act accordingly, and never become emotionally attached to any single deal.
+  </div>
+</section>
+
+<!-- PART 05: SCALING -->
+<section class="content page-break">
+  <span class="section-num">PART 05 · SCALING</span>
+  <h2 class="section">Scaling Your Arbitrage Business</h2>
+  <div class="section-line"></div>
+
+  <p class="lead">Once you've mastered the basics and built consistent profits, the next phase is scaling. This means increasing volume, improving efficiency, and potentially expanding into wholesale sourcing.</p>
+
+  <h3><span class="num">5.1</span>Scaling Roadmap</h3>
+
+  <div class="kpis">
+    <div class="kpi blue">
+      <div class="label">Phase 1 (0-3 mo)</div>
+      <div class="value">10</div>
+      <div class="desc">Items per month</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Phase 2 (3-6 mo)</div>
+      <div class="value">30</div>
+      <div class="desc">Items per month</div>
+    </div>
+    <div class="kpi purple">
+      <div class="label">Phase 3 (6-12 mo)</div>
+      <div class="value">100+</div>
+      <div class="desc">Items per month</div>
+    </div>
+    <div class="kpi orange">
+      <div class="label">Phase 4 (12+ mo)</div>
+      <div class="value">200+</div>
+      <div class="desc">Items per month</div>
+    </div>
+  </div>
+
+  <h3><span class="num">5.2</span>Scaling Strategies by Phase</h3>
+
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Phase</th>
+        <th>Primary Focus</th>
+        <th>Time Investment</th>
+        <th>Revenue Target</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="bold">Phase 1</td><td>Learn platforms, build systems</td><td>5-10 hrs/week</td><td>$200-500/month</td></tr>
+      <tr><td class="bold">Phase 2</td><td>Optimize sourcing, increase volume</td><td>10-20 hrs/week</td><td>$500-1500/month</td></tr>
+      <tr><td class="bold">Phase 3</td><td>Scale operations, add platforms</td><td>20-30 hrs/week</td><td>$1500-3000/month</td></tr>
+      <tr><td class="bold">Phase 4</td><td>Wholesale, team building</td><td>30+ hrs/week</td><td>$3000+/month</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- EPILOGUE -->
+<section class="content page-break">
+  <span class="section-num">EPILOGUE · CONCLUSION</span>
+  <h2 class="section">Key Takeaways & Next Steps</h2>
+  <div class="section-line"></div>
+
+  <div class="conclusion">
+    <h3><span class="num">01.</span>Start with Research</h3>
+    <p style="opacity: 0.92;">Never buy without verifying market demand and competitive pricing. Research is your best protection against bad purchases.</p>
+  </div>
+  <div class="conclusion">
+    <h3><span class="num">02.</span>Master One Platform First</h3>
+    <p style="opacity: 0.92;">Don't spread yourself thin across multiple platforms. Master one, then expand. Facebook Marketplace is the recommended starting point for most markets.</p>
+  </div>
+  <div class="conclusion">
+    <h3><span class="num">03.</span>Calculate Before You Buy</h3>
+    <p style="opacity: 0.92;">Every item requires a minimum profitable price calculation. If the deal doesn't meet your threshold, walk away. There will always be another deal.</p>
+  </div>
+
+  <h3 style="margin-top: 30px;"><span class="num">Summary</span>Your Arbitrage Action Plan</h3>
+  <div class="takeaway"><span class="icon">1</span><span><strong>Week 1:</strong> Set up accounts on eBay and Facebook Marketplace. Download research apps. Begin daily platform monitoring.</span></div>
+  <div class="takeaway"><span class="icon">2</span><span><strong>Week 2:</strong> Complete your first 5 profitable purchases. Document every transaction in your spreadsheet.</span></div>
+  <div class="takeaway"><span class="icon">3</span><span><strong>Week 3:</strong> Analyze results. Identify winning categories. Adjust your research approach based on what sells.</span></div>
+  <div class="takeaway"><span class="icon">4</span><span><strong>Week 4:</strong> Scale successful categories. Set a goal of 10 items. Begin systematizing your sourcing process.</span></div>
+
+  <div class="footer-meta">
+    <h4>What's Included in This Package</h4>
+    <ul>
+      <li><strong>The Arbitrage Sourcing Workflow (PDF)</strong> - Complete methodology guide</li>
+      <li><strong>Product Sourcing Checklist</strong> - Daily reference for sourcing trips</li>
+      <li><strong>Platform-Specific Guide</strong> - Deep-dive strategies for each marketplace</li>
+      <li><strong>Pricing Calculator Template</strong> - Ready-to-use profit calculation spreadsheets</li>
+    </ul>
+    <p style="margin-top: 12px; text-align: center; opacity: 0.6;">— END OF GUIDE —</p>
+  </div>
+</section>
+
+<script>
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+Chart.defaults.font.size = 10;
+Chart.defaults.color = '#424245';
+Chart.defaults.animation = false;
+
+/* Chart 1: Profit Breakdown (Doughnut) */
+new Chart(document.getElementById('chart_profit_breakdown'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Purchase Cost', 'Platform Fees', 'Shipping', 'Packaging', 'Your Profit'],
+    datasets: [{
+      data: [40, 15, 18, 7, 20],
+      backgroundColor: ['#0c8a5d', '#e65100', '#1565c0', '#8e8e93', '#4DBB8F'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 14, padding: 14 } }
+    }
+  }
+});
+
+/* Chart 2: Timing (Horizontal Bar) */
+new Chart(document.getElementById('chart_timing'), {
+  type: 'bar',
+  data: {
+    labels: ['Facebook', 'Craigslist', 'OfferUp', 'Thrift Stores', 'Estate Sales'],
+    datasets: [
+      { label: 'Morning (6-9 AM)', data: [95, 90, 85, 70, 60], backgroundColor: '#0c8a5d', borderRadius: 4 },
+      { label: 'Midday (9-12 PM)', data: [75, 70, 80, 90, 50], backgroundColor: '#4DBB8F', borderRadius: 4 },
+      { label: 'Evening (6-9 PM)', data: [85, 80, 70, 40, 30], backgroundColor: '#B8D4C8', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { position: 'top', labels: { boxWidth: 14, padding: 14 } } },
+    scales: { x: { beginAtZero: true, max: 100, title: { display: true, text: 'Listing Freshness Score' } } }
+  }
+});
+
+/* Chart 3: Categories (Horizontal Bar) */
+new Chart(document.getElementById('chart_categories'), {
+  type: 'bar',
+  data: {
+    labels: ['Electronics', 'Home & Kitchen', 'Baby & Kids', 'Health & Beauty', 'Sports & Outdoors', 'Books & Media'],
+    datasets: [{
+      label: 'Profit Potential Score',
+      data: [92, 88, 85, 82, 78, 75],
+      backgroundColor: ['#0c8a5d', '#0c8a5d', '#1D9D75', '#2AB88C', '#4DBB8F', '#7DCDB8'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true, max: 100, title: { display: true, text: 'Profit Potential Score' } } }
+  }
+});
+</script>
+</body>
+</html>
